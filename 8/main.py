@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 import sys
-import copy
-
-WIDE = 25
-TALL = 6
-LAYER = WIDE * TALL
 
 def layer_stack(top_layer, bottom_layer):
     result = []
@@ -13,29 +8,33 @@ def layer_stack(top_layer, bottom_layer):
             result.append(t)
         else:
             result.append(b)
-    return Layer(result)
+    return Layer(result, top_layer.wide, top_layer.tall)
 
 class Layer:
 
-    def __init__(self, numbers):
+    def __init__(self, numbers, wide, tall):
         self.data = numbers
+        self.wide = wide
+        self.tall = tall
 
     def __iter__(self):
         for d in self.data:
             yield d
 
+    def __repr__(self):
+        out = ""
+        for line in self.as_lines():
+            out += f"{line}\n"
+        return out
+
     def as_lines(self):
         start = 0
-        layer = []
-        while len(layer) != TALL:
-            line = self.data[start:start + WIDE]
-            start += WIDE
-            layer.append(copy.deepcopy(line))
-        return layer
-
-    def pretty_print(self):
-        for line in self.as_lines():
-            print(line)
+        yielded_lines = 0
+        while yielded_lines != self.tall:
+            line = self.data[start:start + self.wide]
+            start += self.wide
+            yielded_lines += 1
+            yield line
 
     def get_numbers(self):
         l = self.data
@@ -46,9 +45,10 @@ class Layer:
 
 class Picture:
 
-    def __init__(self, inp):
+    def __init__(self, inp, wide, tall):
         numbers = []
         self.layers = []
+        layer_lenth = wide * tall
 
         for letter in inp:
             if letter == "\n":
@@ -58,15 +58,15 @@ class Picture:
         left = len(numbers)
         start = 0
         while left > 0:
-            self.layers.append(Layer(numbers[start:start + LAYER]))
-            start += LAYER
-            left -= LAYER
+            self.layers.append(Layer(numbers[start:start + layer_lenth], wide, tall))
+            start += layer_lenth
+            left -= layer_lenth
 
-    def pretty_print(self):
+    def __repr__(self):
+        out = ""
         for layer in self.layers:
-            layer.pretty_print()
-            print()
-
+            out += f"{layer}\n"
+        return out
 
     def get_fist_solution(self):
         best_layer = []
@@ -80,20 +80,28 @@ class Picture:
 
         return n1 * n2
 
-    def print_final(self):
+    def decode(self):
         start = self.layers.pop(0)
         while self.layers != []:
             start = layer_stack(start, self.layers.pop(0))
-        start.pretty_print()
-
-
+        self.layers.append(start)
+        return start
 
 def main():
+    wide = 25
+    tall = 6
+
     std_in = sys.stdin.read()
-    pic = Picture(std_in)
-    pic.pretty_print()
+    pic = Picture(std_in, wide, tall)
+    # Debug
+    print(pic)
+
+    # Fist solution
     print(pic.get_fist_solution())
-    pic.print_final()
+
+    # Second solution
+    pic.decode()
+    print(pic)
 
 if __name__ == "__main__":
     main()
