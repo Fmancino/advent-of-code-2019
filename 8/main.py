@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import copy
 
 def layer_stack(top_layer, bottom_layer):
     result = []
@@ -81,10 +82,10 @@ class Picture:
         return n1 * n2
 
     def decode(self):
-        start = self.layers.pop(0)
-        while self.layers != []:
-            start = layer_stack(start, self.layers.pop(0))
-        self.layers.append(start)
+        l = copy.deepcopy(self.layers)
+        start = l.pop(0)
+        while l != []:
+            start = layer_stack(start, l.pop(0))
         return start
 
 def main():
@@ -97,11 +98,12 @@ def main():
     print(pic)
 
     # Fist solution
+    print("First problem")
     print(pic.get_fist_solution())
 
     # Second solution
-    pic.decode()
-    print(pic)
+    print("Second problem")
+    print(pic.decode())
 
 if __name__ == "__main__":
     main()
