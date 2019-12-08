@@ -82,10 +82,9 @@ class Picture:
         return n1 * n2
 
     def decode(self):
-        l = copy.deepcopy(self.layers)
-        start = l.pop(0)
-        while l != []:
-            start = layer_stack(start, l.pop(0))
+        start = copy.deepcopy(self.layers[0])
+        for l in self.layers[1:]:
+            start = layer_stack(start, l)
         return start
 
 def main():
