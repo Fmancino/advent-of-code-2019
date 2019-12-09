@@ -69,6 +69,26 @@ class IntcodeComputer:
                 print(self.gmv(r_mem, pos_n1, modes[1]))
                 pos += 2
 
+            elif opcode == 5:  #jump if true
+                pos_n1 = self.grv(r_mem, pos + 1)
+                val_n1 = self.gmv(r_mem, pos_n1, modes[1])
+                if val_n1 != 0:
+                    pos_n2 = self.grv(r_mem, pos + 2)
+                    val_n2 = self.gmv(r_mem, pos_n2, modes[2])
+                    pos = val_n2
+                else:
+                    pos += 3
+
+            elif opcode == 6:  #jump if false
+                pos_n1 = self.grv(r_mem, pos + 1)
+                val_n1 = self.gmv(r_mem, pos_n1, modes[1])
+                if val_n1 == 0:
+                    pos_n2 = self.grv(r_mem, pos + 2)
+                    val_n2 = self.gmv(r_mem, pos_n2, modes[2])
+                    pos = val_n2
+                else:
+                    pos += 3
+
             elif opcode == 7:  #less than
                 pos_n1 = self.grv(r_mem, pos + 1)
                 pos_n2 = self.grv(r_mem, pos + 2)

@@ -18,10 +18,13 @@ def main():
     std_in = sys.stdin.read()
     std_in_numbers = map(int, std_in.split(","))
     prog = dict(zip(itertools.count(), std_in_numbers))
-    comp = IntcodeComputer(prog, 1)
+    comp1 = IntcodeComputer(prog, 1)
 
     print("first star")
-    comp.run(collections.OrderedDict())
+    comp1.run(collections.OrderedDict())
+    comp2 = IntcodeComputer(prog, 5)
+    print("second star")
+    comp2.run(collections.OrderedDict())
 
 
 if __name__ == "__main__":
