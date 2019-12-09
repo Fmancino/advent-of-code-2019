@@ -58,16 +58,40 @@ class IntcodeComputer:
                 r_mem[pos_result] = val_n1 * val_n2
                 pos += 4
 
-            elif opcode == 3:
+            elif opcode == 3: # in
                 pos_n1 = self.grv(r_mem, pos + 1)
                 r_mem[pos_n1] = self.input_val
                 pos += 2
 
-            elif opcode == 4:
+            elif opcode == 4: # out
                 pos_n1 = self.grv(r_mem, pos + 1)
                 out = self.gmv(r_mem, pos_n1, modes[1])
                 print(self.gmv(r_mem, pos_n1, modes[1]))
                 pos += 2
+
+            elif opcode == 7:  #less than
+                pos_n1 = self.grv(r_mem, pos + 1)
+                pos_n2 = self.grv(r_mem, pos + 2)
+                pos_result = self.grv(r_mem, pos + 3)
+                val_n1 = self.gmv(r_mem, pos_n1, modes[1])
+                val_n2 = self.gmv(r_mem, pos_n2, modes[2])
+                if val_n1 < val_n2:
+                    r_mem[pos_result] = 1
+                else:
+                    r_mem[pos_result] = 0
+                pos += 4
+
+            elif opcode == 8:  #equals
+                pos_n1 = self.grv(r_mem, pos + 1)
+                pos_n2 = self.grv(r_mem, pos + 2)
+                pos_result = self.grv(r_mem, pos + 3)
+                val_n1 = self.gmv(r_mem, pos_n1, modes[1])
+                val_n2 = self.gmv(r_mem, pos_n2, modes[2])
+                if val_n1 == val_n2:
+                    r_mem[pos_result] = 1
+                else:
+                    r_mem[pos_result] = 0
+                pos += 4
 
             else:
                 raise ValueError(f"unexpected number: {opcode}")
