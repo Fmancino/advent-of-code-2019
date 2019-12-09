@@ -2,8 +2,9 @@
 
 class IntcodeComputer:
 
-    def __init__(self, program):
+    def __init__(self, program, input_val=None):
         self.program = program
+        self.input_val = input_val
 
     def grv(self, run_mem, pos):
         """
@@ -18,6 +19,14 @@ class IntcodeComputer:
             run_mem[pos] = self.program[pos]
         return run_mem[pos]
 
+    def gmv(self, run_mem, immediate_value, is_immediate_mode):
+        """
+        "Get mode value"
+        """
+        if is_immediate_mode:
+            return immediate_value
+        return self.grv(run_mem, immediate_value)
+
     def run_2args(self, noun, verb):
         r_mem = {}
         r_mem[1] = noun
@@ -28,14 +37,46 @@ class IntcodeComputer:
         pos = 0
         while self.grv(r_mem, pos) != 99:
             item = self.grv(r_mem, pos)
-            pos_n1 = self.grv(r_mem, pos + 1)
-            pos_n2 = self.grv(r_mem, pos + 2)
-            pos_result = self.grv(r_mem, pos + 3)
-            if item == 1:
-                r_mem[pos_result] = self.grv(r_mem, pos_n1) + self.grv(r_mem, pos_n2)
-            elif item == 2:
-                r_mem[pos_result] = self.grv(r_mem, pos_n1) * self.grv(r_mem, pos_n2)
+            opcode = item % 100
+            modes = get_modes(item // 100)
+
+            if opcode == 1:
+                pos_n1 = self.grv(r_mem, pos + 1)
+                pos_n2 = self.grv(r_mem, pos + 2)
+                pos_result = self.grv(r_mem, pos + 3)
+                val_n1 = self.gmv(r_mem, pos_n1, modes[1])
+                val_n2 = self.gmv(r_mem, pos_n2, modes[2])
+                r_mem[pos_result] = val_n1 + val_n2
+                pos += 4
+
+            elif opcode == 2:
+                pos_n1 = self.grv(r_mem, pos + 1)
+                pos_n2 = self.grv(r_mem, pos + 2)
+                pos_result = self.grv(r_mem, pos + 3)
+                val_n1 = self.gmv(r_mem, pos_n1, modes[1])
+                val_n2 = self.gmv(r_mem, pos_n2, modes[2])
+                r_mem[pos_result] = val_n1 * val_n2
+                pos += 4
+
+            elif opcode == 3:
+                pos_n1 = self.grv(r_mem, pos + 1)
+                r_mem[pos_n1] = self.input_val
+                pos += 2
+
+            elif opcode == 4:
+                pos_n1 = self.grv(r_mem, pos + 1)
+                out = self.gmv(r_mem, pos_n1, modes[1])
+                print(self.gmv(r_mem, pos_n1, modes[1]))
+                pos += 2
+
             else:
-                raise ValueError(f"unexpected number: {item}")
-            pos += 4
+                raise ValueError(f"unexpected number: {opcode}")
         return r_mem[0]
+
+def get_modes(modes_int):
+    modes = {1: False, 2: False, 3: False}
+    modes[3] = (modes_int // 100) == 1
+    modes2 = modes_int % 100
+    modes[2] = (modes2 // 10) == 1
+    modes[1] = (modes2 % 10) == 1
+    return modes
