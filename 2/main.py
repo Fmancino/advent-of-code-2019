@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import itertools
+sys.path.append('../utils')
 from intcodeconputer import IntcodeComputer
 
 def try_all_combinations(program, exp_result, max_range):
