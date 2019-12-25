@@ -87,9 +87,6 @@ class Space:
         ti, lvl = self.get_coordinates(key)
         self.data[lvl][ti] = value
 
-    def __deepcopy__(self, memo):
-        return type(self)(copy.deepcopy(self.data, memo))
-
 class Tile:
 
     def __init__(self, text):
@@ -117,7 +114,8 @@ class Tile:
         return not self.__eq__(other)
 
     def __deepcopy__(self, memo):
-        return type(self)(copy.deepcopy(self.data, memo))
+        # the constructor does a copy of input, so deepcopy does not need to deepcopy input
+        return type(self)(self.data)
 
     def get_coordinates(self, index):
         x = index % self.wide
@@ -265,7 +263,7 @@ def main():
     while minutes != 200:
         space.minute_pass()
         minutes += 1
-        bugs = space.get_all_bugs()
+    bugs = space.get_all_bugs()
     # print(space)
     print(f"minutes: {minutes}")
     print(f"populated levels: {len(space.data)-2}")
