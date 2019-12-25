@@ -6,12 +6,12 @@ from collections import OrderedDict
 
 class Space:
 
-    def __init__(self, text, wide):
+    def __init__(self, tiles):
 
         self.no_data = ['.'*5]*5
+        self.no_tile = Tile(self.no_data)
 
-        self.data = OrderedDict()
-        self.data[0] = Tile(text)
+        self.data = tiles
         self.tile_size = len(self.data[0])
         self.min_lvl = 0
         self.max_lvl = 1
@@ -19,55 +19,76 @@ class Space:
         self.empty = '.'
 
     def __iter__(self):
-        for lvl in self.data:
-            for place in lvl:
+        for key in self.data:
+            for place in key:
                 yield place
+
+    def __repr__(self):
+        out = ""
+        for lvl_key in self.data:
+            #  out += f"level {lvl_key}\n"
+            out += f"{lvl_key}"
+            out += "\n"
+        return out
 
     def get_coordinates(self, index):
         tile_index = index % self.tile_size
-        z = (index // self.tile_size) + self.min_lvl
+        z = (index // self.tile_size)
         return tile_index, z
-
-    def minute_pass(self):
-        original = copy.deepcopy(self)
-        for count, place in enumerate (original):
-            if place == self.bug and original_tile.bug_dies(count):
-                self[count] = self.empty
-            if place == self.empty and original_tile.space_is_infested(count):
-                self[count] = self.bug
-        return original_tile
-
-    def get_num_levels(self):
-        return self.max_lvl - selv.min_lvl
 
     def bug_dies(self, index):
         ti, lvl = self.get_coordinates(index)
-        try:
-            self.data[lvl]
-        except KeyError:
-            self.data[lvl] = Tile(self.no_data)
-        
-
         close = self.data[lvl].get_close_coordinates_3d(ti, lvl)
-        bug_count = 0
-        for x,y,z in close:
-            if self.data[lvl].data[y][x] == self.bug:
-                bug_count += 1
-        if bug_count == 1:
+
+        if self.count_bugs(close) == 1:
             return False
-        else:
+        return True
+
+    def count_bugs(self, close_places):
+        bug_count = 0
+        for x,y,z in close_places:
+            try:
+                if self.data[z].data[y][x] == self.bug:
+                    bug_count += 1
+            except IndexError:
+                # if the level does no exist it is empty at this point
+                continue
+        return bug_count
+
+    def get_all_bugs(self):
+        bug_count = 0
+        for place in self:
+            if place == self.bug:
+                bug_count += 1
+        return bug_count
+
+    def space_is_infested(self, index):
+        ti, lvl = self.get_coordinates(index)
+        close = self.data[lvl].get_close_coordinates_3d(ti, lvl)
+
+        if self.count_bugs(close) in [1,2]:
             return True
+        return False
 
     def minute_pass(self):
-        if self.data[self.min_lvl] != Tile(self.no_data):
-            self.min_lvl
-        original_tile = Tile(self.data)
-        for count, place in enumerate (original_tile):
-            if place == self.bug and original_tile.bug_dies(count):
+        if self.data[0] != self.no_tile:
+            self.data.insert(0, Tile(self.no_data))
+        if self.data[len(self.data)-1] != self.no_tile:
+            self.data.append(Tile(self.no_data))
+
+        original_space = copy.deepcopy(self)
+        for count, place in enumerate (original_space):
+            if place == self.bug and original_space.bug_dies(count):
                 self[count] = self.empty
-            if place == self.empty and original_tile.space_is_infested(count):
+            if place == self.empty and original_space.space_is_infested(count):
                 self[count] = self.bug
-        return original_tile
+
+    def __setitem__(self, key, value):
+        ti, lvl = self.get_coordinates(key)
+        self.data[lvl][ti] = value
+
+    def __deepcopy__(self, memo):
+        return type(self)(copy.deepcopy(self.data, memo))
 
 class Tile:
 
@@ -82,9 +103,21 @@ class Tile:
 
         self.wide = len(data_lines)
         self.data = data_lines
-        self.middle = self.wide // 2 + self.wide % 2
+        self.middle = self.wide // 2
         self.bug = '#'
         self.empty = '.'
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __deepcopy__(self, memo):
+        return type(self)(copy.deepcopy(self.data, memo))
 
     def get_coordinates(self, index):
         x = index % self.wide
@@ -108,8 +141,8 @@ class Tile:
     def get_close_coordinates_3d(self, index, lvl):
         x, y = self.get_coordinates(index)
         res = []
-        if x == self.middle and y== self.middle:
-            return res []
+        if x == self.middle and y == self.middle:
+            return res
 
         if x != 0:
             res += [(x-1, y, lvl)]
@@ -120,11 +153,11 @@ class Tile:
         else:
             res += [(self.middle, self.middle-1, lvl+1)]
         if y != self.wide - 1:
-            res += [(x, y+1)]
+            res += [(x, y+1, lvl)]
         else:
             res += [(self.middle, self.middle+1, lvl+1)]
         if x != self.wide - 1:
-            res += [(x+1, y)]
+            res += [(x+1, y, lvl)]
         else:
             res += [(self.middle+1, self.middle, lvl+1)]
 
@@ -222,8 +255,21 @@ def main():
     while not tile_in_history(tile, tile_history):
         tile_history.append(tile.minute_pass())
     # Debug
-    print(tile)
+    print("First star:")
+    # print(tile)
     print(tile.get_biodiversity_rating())
+    print("Second star:")
+    minutes = 0
+    space = Space([Tile(std_in)])
+    bugs = space.get_all_bugs()
+    while minutes != 200:
+        space.minute_pass()
+        minutes += 1
+        bugs = space.get_all_bugs()
+    # print(space)
+    print(f"minutes: {minutes}")
+    print(f"populated levels: {len(space.data)-2}")
+    print(f"bugs: {bugs}")
 
 def tile_in_history(tile, history):
     for t in history:
